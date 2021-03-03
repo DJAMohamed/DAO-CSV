@@ -21,6 +21,7 @@ import m2i.formation.dao.IPersonneDao;
 import m2i.formation.model.Adresse;
 import m2i.formation.model.Civilite;
 import m2i.formation.model.Formateur;
+import m2i.formation.model.Matiere;
 import m2i.formation.model.Personne;
 import m2i.formation.model.Stagiaire;
 
@@ -73,7 +74,7 @@ public class PersonneDaoFile implements IPersonneDao {
 			personnes.set(index, obj);
 			write(personnes);
 		} else {
-			throw new FormationDataException("Personne n°" + obj.getId() + " non trouvée");
+			throw new FormationDataException("Personne n° " + obj.getId() + " non trouvée.");
 		}
 	}
 
@@ -92,7 +93,7 @@ public class PersonneDaoFile implements IPersonneDao {
 			personnes.remove(index);
 			write(personnes);
 		} else {
-			throw new FormationDataException("Personne n°" + id + " non trouvée");
+			throw new FormationDataException("Personne n° " + id + " non trouvée.");
 		}
 	}
 
@@ -100,6 +101,25 @@ public class PersonneDaoFile implements IPersonneDao {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		List<Personne> personnes = new ArrayList<Personne>();
 		Map<Stagiaire, Long> liaisons = new HashMap<Stagiaire, Long>();
+		Map<Long, List<Matiere>> competences = new HashMap<Long, List<Matiere>>();
+		Path pathCompetence = Paths.get("competences.csv");
+		if (pathCompetence.toFile().exists()) {
+			try {
+				List<String> lines = Files.readAllLines(pathCompetence, StandardCharsets.UTF_8);
+				for (String line : lines) {
+					String[] items = line.split(";", -1);
+					Long idFormateur = Long.valueOf(items[0]);
+					Long idMatiere = Long.valueOf(items[1]);
+					if (!competences.containsKey(idFormateur)) {
+						competences.put(idFormateur, new ArrayList<Matiere>());
+					}
+					Matiere matiere = Application.getInstance().getMatiereDao().findById(idMatiere);
+					competences.get(idFormateur).add(matiere);
+				}
+			} catch (IOException e) {
+				throw new FormationDataException(e);
+			}
+		}
 		Path path = Paths.get("personnes.csv");
 		File file = path.toFile();
 		if (file.exists()) {
@@ -138,6 +158,9 @@ public class PersonneDaoFile implements IPersonneDao {
 						formateur.setDtEmbauche(dtEmbauche);
 						formateur.setExperience(experience);
 						formateur.setInterne(interne);
+						if(competences.containsKey(formateur.getId())) {
+							formateur.setCompetences(competences.get(formateur.getId()));
+						}
 					} else {
 						personne = new Stagiaire();
 						((Stagiaire) personne).setDtNaissance(dtNaissance);
@@ -166,7 +189,7 @@ public class PersonneDaoFile implements IPersonneDao {
 					}
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new FormationDataException(e);
 			}
 		}
 		return personnes;
@@ -174,6 +197,7 @@ public class PersonneDaoFile implements IPersonneDao {
 
 	private void write(List<Personne> personnes) {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		List<String> competences = new ArrayList<String>();
 		List<String> lines = new ArrayList<String>();
 		for (Personne personne : personnes) {
 			StringBuilder sb = new StringBuilder();
@@ -204,15 +228,33 @@ public class PersonneDaoFile implements IPersonneDao {
 				sb.append(personne.getAdresse().getId());
 			}
 			sb.append(";");
-			if (personne instanceof Stagiaire && ((Stagiaire)personne).getFormateur() != null && ((Stagiaire)personne).getFormateur().getId() != null) {
-				sb.append(((Stagiaire)personne).getFormateur().getId());
+			if (personne instanceof Stagiaire && ((Stagiaire) personne).getFormateur() != null
+					&& ((Stagiaire) personne).getFormateur().getId() != null) {
+				sb.append(((Stagiaire) personne).getFormateur().getId());
 			}
 			String line = sb.toString();
 			lines.add(line);
+			if (personne instanceof Formateur) {
+				for (Matiere matiere : ((Formateur) personne).getCompetences()) {
+					if (matiere.getId() == null) {
+						throw new FormationDataException("La matière non persistente " + matiere.getNom()
+								+ " du formateur n° " + personne.getId() + ".");
+					}
+					String str = personne.getId() + ";" + matiere.getId();
+					competences.add(str);
+				}
+			}
 		}
 		Path path = Paths.get("personnes.csv");
 		try {
 			Files.write(path, lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE,
+					StandardOpenOption.TRUNCATE_EXISTING);
+		} catch (IOException e) {
+			throw new FormationDataException(e);
+		}
+		Path pathCompetence = Paths.get("competences.csv");
+		try {
+			Files.write(pathCompetence, competences, StandardCharsets.UTF_8, StandardOpenOption.CREATE,
 					StandardOpenOption.TRUNCATE_EXISTING);
 		} catch (IOException e) {
 			throw new FormationDataException(e);

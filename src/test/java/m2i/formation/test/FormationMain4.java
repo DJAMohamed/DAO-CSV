@@ -14,10 +14,10 @@ import m2i.formation.model.Formateur;
 import m2i.formation.model.Matiere;
 import m2i.formation.model.Stagiaire;
 
-public class FormationMain3 {
+public class FormationMain4 {
 
 	public static void main(String[] args) throws ParseException {
-SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		
 		IAdresseDao adresseDao = Application.getInstance().getAdresseDao();
 		IMatiereDao matiereDao = Application.getInstance().getMatiereDao();
@@ -55,7 +55,11 @@ SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 				15, true);
 
 		Stagiaire romain = new Stagiaire(Civilite.M, "VASSEUR", "Romain", "romain@gmail.com", sdf.parse("25/12/1983"));
-		romain.setFormateur(eric);
+		
+		romain.setFormateur(eric); // Master => il est géré par le DAO.
+		
+		eric.getStagiaires().add(romain); // Slave.
+		
 		Stagiaire alexandre = new Stagiaire(Civilite.M, "WOLNY", "Alexandre", "alexandre@gmail.com", sdf.parse("05/05/1985"));
 		Stagiaire cyril = new Stagiaire(Civilite.M, "ROMANO", "Cyril", "cyril@gmail.com", sdf.parse("05/05/1982"));
 		
@@ -64,6 +68,16 @@ SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		personneDao.create(alexandre);
 		personneDao.create(benoit);
 		personneDao.create(cyril);
+		
+		eric.getCompetences().add(springCore);
+		eric.getCompetences().add(java);
+		
+		benoit.getCompetences().add(springCore);
+		benoit.getCompetences().add(html);
+		benoit.getCompetences().add(java);
+		
+		personneDao.update(eric);
+		personneDao.update(benoit);
+		
 	}
-
 }

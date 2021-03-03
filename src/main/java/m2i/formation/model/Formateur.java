@@ -24,6 +24,14 @@ public class Formateur extends Personne {
 		this.experience = experience;
 		this.interne = interne;
 	}
+	
+	public Formateur(Long id, Civilite civilite, String nom, String prenom, String email, Date dtEmbauche, int experience,
+			boolean interne) {
+		super(id, civilite, nom, prenom, email);
+		this.dtEmbauche = dtEmbauche;
+		this.experience = experience;
+		this.interne = interne;
+	}
 
 	public Date getDtEmbauche() {
 		return dtEmbauche;

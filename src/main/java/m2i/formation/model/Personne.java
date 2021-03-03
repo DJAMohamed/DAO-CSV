@@ -11,7 +11,16 @@ public abstract class Personne {
 	public Personne() {
 		super();
 	}
-
+	
+	public Personne(Long id, Civilite civilite, String nom, String prenom, String email) {
+		super();
+		this.id = id;
+		this.civilite = civilite;
+		this.nom = nom;
+		this.prenom = prenom;
+		this.email = email;
+	}
+	
 	public Personne(Civilite civilite, String nom, String prenom, String email) {
 		super();
 		this.civilite = civilite;

@@ -15,6 +15,11 @@ public class Stagiaire extends Personne {
 		super(civilite, nom, prenom, email);
 		this.dtNaissance = dtNaissance;
 	}
+	
+	public Stagiaire(Long id, Civilite civilite, String nom, String prenom, String email, Date dtNaissance) {
+		super(id, civilite, nom, prenom, email);
+		this.dtNaissance = dtNaissance;
+	}
 
 	public Date getDtNaissance() {
 		return dtNaissance;
